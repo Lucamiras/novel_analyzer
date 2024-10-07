@@ -12,3 +12,4 @@ parser_chap = TextParser(chapter_one)
 
 print(parser_full.chars)
 print(parser_chap.syllables)
+print("Done")
