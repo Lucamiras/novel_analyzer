@@ -43,13 +43,17 @@ class TextParser:
         'english': stopwords.words('english'),
         'german': stopwords.words('german')
         }
+    punctuation = ['.',',',';',':','!','?','(',')','[',']','{','}','"','\'', '»', '«', '…', '-', '_']
 
-    def __init__(self, text:list):
+    def __init__(self, text:list, exclusion_list:list):
         self.text = text
+        self.exclusion_list = exclusion_list
         self.full_text = self._join_text()
         self.words = self._get_words()
         self.syllables = self._get_syllables()
         self.sentences = self._get_sentences()
+        self.word_dict = self._generate_word_dict()
+        self.word_dict_without_stopwords = self._generate_word_dict_without_stopwords()
         self.num_chars, self.chars_no_spaces = self._get_num_characters()
         self.num_words = len(self.words)
         self.num_syllables = len(self.syllables)
@@ -65,13 +69,28 @@ class TextParser:
         return sent_tokenize(self.full_text)
     
     def _get_words(self):
-        return word_tokenize(self.full_text)
+        return [word for word in word_tokenize(self.full_text) 
+        if (word not in self.punctuation)
+        and word.lower() not in self.exclusion_list]
 
     def _get_syllables(self):
         syl = SyllableTokenizer() 
         syllabilized_words = [syl.tokenize(word) for word in self.words]
         syllables = [syllable for word in syllabilized_words for syllable in word]
         return syllables
+
+    def _generate_word_dict(self):
+        words_lower = [word.lower() for word in self.words]
+        word_dict = {}
+        for word in words_lower:
+            word_dict[word] = word_dict.get(word, 0) + 1
+        word_dict_sorted = {
+            key: value for key, value in sorted(word_dict.items(), key=lambda x: x[1], reverse=True) 
+        }
+        return word_dict_sorted
     
-    
+    def _generate_word_dict_without_stopwords(self):
+        return {
+            key: value for key, value in self.word_dict.items() if key not in self.stopwords['german']
+        }
     
