@@ -2,25 +2,31 @@ import streamlit as st
 from src.doc import DocumentAnalyzer
 
 
-da = DocumentAnalyzer("data/aresin_doc.docx", top_n=10)
-
-(
-    average_word_length, 
-    average_sent_length, 
-    average_para_length, 
-    median_word_length, 
-    median_sent_length, 
-    median_para_length
-) = da.get_basic_stats()
-
-top_most_used, top_least_used = da.get_top_n_most_and_least_used()
-shortest_sentence, longest_sentence, shortest_word, longest_word = da.get_outliers()
-fk_grade, fk_description = da._get_flesch_kincaid_eval()
-
 headline = st.title("Prose analyzer")
+uploaded_file = st.file_uploader("Upload a .docx file", type=["docx"])
+updloaded_file_content = uploaded_file.read()
 button = st.button("Analyze")
+progress_bar = st.progress(0)
 
 if button:
+    da = DocumentAnalyzer("data/aresin_doc.docx", top_n=10)
+    (
+        average_word_length, 
+        average_sent_length, 
+        average_para_length, 
+        median_word_length, 
+        median_sent_length, 
+        median_para_length
+    ) = da.get_basic_stats()
+    progress_bar.progress(30)
+
+    top_most_used, top_least_used = da.get_top_n_most_and_least_used()
+    progress_bar.progress(50)
+    shortest_sentence, longest_sentence, shortest_word, longest_word = da.get_outliers()
+    progress_bar.progress(80)
+    fk_grade, fk_description = da._get_flesch_kincaid_eval()
+    progress_bar.progress(100)
+
     metadata_tab, stats_tab, dist_tab, text_tab, quality_tab, content_tab = st.tabs([
         "Metadata",
         "Basic Statistics",

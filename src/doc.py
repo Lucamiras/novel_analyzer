@@ -5,7 +5,6 @@ from nltk.corpus import stopwords
 from nltk.tokenize import SyllableTokenizer, word_tokenize, sent_tokenize
 import matplotlib.pyplot as plt
 import numpy as np
-import spacy
 
 
 class DocumentAnalyzer:
@@ -159,3 +158,4 @@ class DocumentAnalyzer:
         plt.xlabel(xlabel)
         plt.title(title)
         container.pyplot(plt)
+        
