@@ -43,7 +43,7 @@ class TextParser:
         'english': stopwords.words('english'),
         'german': stopwords.words('german')
         }
-    punctuation = ['.',',',';',':','!','?','(',')','[',']','{','}','"','\'', '»', '«', '…', '-', '_']
+    punctuation = ['.',',',';',':','!','?','(',')','[',']','{','}','"','\'', '»', '«', '…', '-', '_','–']
 
     def __init__(self, text:list, exclusion_list:list):
         self.text = text
@@ -71,7 +71,8 @@ class TextParser:
     def _get_words(self):
         return [word for word in word_tokenize(self.full_text) 
         if (word not in self.punctuation)
-        and word.lower() not in self.exclusion_list]
+        and (word.lower() not in self.exclusion_list)
+        and len(word) > 1]
 
     def _get_syllables(self):
         syl = SyllableTokenizer() 

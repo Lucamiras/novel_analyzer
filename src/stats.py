@@ -1,6 +1,6 @@
 import numpy as np
 import plotly.express as px
-from src.input.parse import TextParser
+from src.parse import TextParser
 from nltk.tokenize import word_tokenize, sent_tokenize
 import streamlit as st
 
@@ -13,6 +13,9 @@ class TextStats:
         self.length_of_sentences = [len(word_tokenize(sent)) for sent in self.parser.sentences]
         self.length_of_paragraphs = [len(word_tokenize(para)) for para in self.parser.text]
         self.top_used, self.least_used = self.get_top_n_most_and_least_used()
+        self.lexical_richness = self.get_lexical_richness()
+        self.flesch_kincaid = self.get_flesch_kincaid_score()
+        self.flesch_kincaid_grade, self.flesch_kincaid_desc = self.get_flesch_kincaid_eval()
 
     def get_basic_stats(self):
         average_word_length = round(float(np.mean(self.length_of_words)),1)
@@ -60,3 +63,40 @@ class TextStats:
         fig.update_yaxes(range=[0, top_frequency])
         streamlit_container.plotly_chart(fig)
         
+    def get_longest_shortest_word(self):
+        longest_word = max(self.parser.word_dict_without_stopwords, key=len)
+        shortest_word = min(self.parser.word_dict_without_stopwords, key=len)
+        return longest_word, shortest_word
+    
+    def get_longest_shortest_sentence(self):
+        longest_sentence = max(self.parser.sentences, key=lambda x: len(word_tokenize(x)))
+        shortest_sentence = min(self.parser.sentences, key=lambda x: len(word_tokenize(x)))
+        return longest_sentence, shortest_sentence
+    
+    def get_lexical_richness(self):
+        num_unique_words = len([value for value in self.parser.word_dict.values() if value == 1])
+        num_total_words = len(self.parser.word_dict)
+        return np.round(num_unique_words/num_total_words,2)
+    
+    def get_flesch_kincaid_score(self):
+        return float(
+            np.round(
+                206.835 - (1.015 * (self.parser.num_words / self.parser.num_sentences)) - (84.6 * (self.parser.num_syllables / self.parser.num_words)),
+                1)
+            )
+    
+    def get_flesch_kincaid_eval(self):
+        scale = [
+            (range(90, 101), "5th grade", "Very easy to read. Easily understood by an average 11-year-old student."),
+            (range(80, 90), "6th grade", "Easy to read. Conversational English for consumers."),
+            (range(70, 80), "7th grade", "Fairly easy to read."),
+            (range(60, 70), "8th & 9th grade", "Plain English. Easily understood by 13- to 15-year-old students."),
+            (range(50, 60), "10th to 12th", "Fairly difficult to read."),
+            (range(30, 50), "College", "Difficult to read."),
+            (range(10, 30), "College graduate", "Very difficult to read. Best understood by university graduates."),
+            (range(0, 10), "Professional", "Extremely difficult to read. Best understood by university graduates.")
+        ]
+        score = int(np.round(self.flesch_kincaid, 0))
+        for sub_range, grade, description in scale:
+            if score in sub_range:
+                return grade, description
